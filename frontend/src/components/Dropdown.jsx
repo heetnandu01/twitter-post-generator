@@ -18,7 +18,7 @@ function Dropdown({ value, onChange, options }) {
       </button>
       
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-black border border-gray-800 rounded-md z-10">
+        <div className="absolute left-0 right-0 mt-1 bg-black border border-gray-800 rounded-md z-50">
           {options.map((option) => (
             <div 
               key={option}

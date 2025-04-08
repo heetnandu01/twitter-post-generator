@@ -1,7 +1,8 @@
-// components/GeneratedPost.jsx
+// Updated GeneratedPost.jsx
 import React, { useState } from 'react';
+import axios from 'axios';
 
-function GeneratedPost({ post }) {
+function GeneratedPost({ post, topic, tone, targetAudience, prompt, userId }) {
   const [copyStatus, setCopyStatus] = useState('');
   const [bookmarkStatus, setBookmarkStatus] = useState('');
   
@@ -11,9 +12,26 @@ function GeneratedPost({ post }) {
     setTimeout(() => setCopyStatus(''), 2000);
   };
   
-  const handleBookmark = () => {
-    setBookmarkStatus('saved');
-    setTimeout(() => setBookmarkStatus(''), 2000);
+  const handleBookmark = async () => {
+    try {
+      // Call the bookmark API endpoint
+      const response = await axios.post('http://localhost:5000/api/posts/bookmark', {
+        clerkId: userId,
+        topic: topic || 'Untitled',
+        tone: tone || 'Casual',
+        targetAudience: targetAudience || 'General',
+        prompt: prompt || '',
+        generatedTweet: post
+      });
+      
+      setBookmarkStatus('saved');
+      setTimeout(() => setBookmarkStatus(''), 2000);
+      
+      console.log('Post bookmarked successfully:', response.data);
+    } catch (error) {
+      console.error('Error bookmarking post:', error);
+      alert('Failed to bookmark post. Please try again.');
+    }
   };
   
   return (

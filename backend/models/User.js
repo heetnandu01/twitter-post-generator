@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema(
   {
     clerkId: { type: String, required: true, unique: true },
-    groqApiKey: { type: String, required: true },
+    groqApiKey: { type: String },
   },
   { timestamps: true }
 );

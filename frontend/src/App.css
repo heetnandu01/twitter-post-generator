@@ -1,4 +1,4 @@
-/* App.css */
+/* Combined CSS file */
 :root {
   --bg-color: #000000;
   --card-bg: #1a1a1a;
@@ -25,9 +25,17 @@ body {
 }
 
 .app {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  position: relative;
 }
 
 /* Improved header styling */
@@ -36,10 +44,11 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
+  background-color: #1a1a1a;
+  color: white;
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
-  background-color: var(--bg-color);
   z-index: 100;
 }
 
@@ -49,18 +58,6 @@ body {
   margin: 0;
 }
 
-.user-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-name {
-  margin-right: 0.5rem;
-  color: var(--text-color);
-}
-
-/* Hamburger Menu */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -79,33 +76,75 @@ body {
   transition: all 0.3s ease;
 }
 
-.container {
+.user-section {
   display: flex;
-  flex: 1;
-  position: relative;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  margin-right: 0.5rem;
+  color: var(--text-color);
+  font-size: 0.9rem;
 }
 
 /* Improved sidebar styling */
 .sidebar {
-  width: 250px;
+  width: 300px;
   padding: 1.5rem;
   border-right: 1px solid var(--border-color);
   height: calc(100vh - 60px);
   position: sticky;
   top: 60px;
   overflow-y: auto;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: width 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   background-color: var(--bg-color);
 }
 
+.sidebar.collapsed {
+  width: 30px;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 25px;
+  height: 25px;
+  background-color: #333;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.sidebar-content {
+  padding: 1rem;
+  width: 250px;
+}
+
 .sidebar h2 {
+  font-size: 1.25rem;
   margin-bottom: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #333;
+}
+
+.sidebar h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .bookmarks-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Improved bookmark item styling */
@@ -146,24 +185,78 @@ body {
 .no-bookmarks {
   color: var(--muted-text);
   margin-top: 1rem;
+  font-style: italic;
 }
 
+.api-settings {
+  margin-top: 1.5rem;
+}
+
+/* Desktop sidebar */
+.desktop-sidebar {
+  display: block;
+}
+
+/* Mobile sidebar */
+.mobile-sidebar {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100%;
+  background-color: #1a1a1a;
+  z-index: 1000;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  padding-top: 1rem;
+}
+
+.mobile-sidebar.open {
+  left: 0;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 80;
+  display: none;
+}
+
+.sidebar-backdrop.open {
+  display: block;
+}
+
+/* Main content */
 .main-content {
   flex: 1;
   padding: 1.5rem;
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
+  transition: margin-left 0.3s ease;
+  justify-content:center;
+  align-items:center;
 }
 
+.main-content.expanded {
+  margin-left: 30px;
+}
+
+/* Cards */
 .card {
   background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
+.card h2 {
+  margin-top: 0;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
@@ -175,9 +268,11 @@ h2 {
 .input-group label {
   display: block;
   margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #ccc;
 }
 
-input, textarea {
+input, textarea, .input-group input, .input-group textarea {
   width: 100%;
   padding: 0.75rem;
   background-color: var(--input-bg);
@@ -189,6 +284,38 @@ input, textarea {
 
 textarea {
   min-height: 120px;
+  resize: vertical;
+}
+
+.save-button {
+  background-color: #3182ce;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover {
+  background-color: #2b6cb0;
+}
+
+.save-button.saved {
+  background-color: #38a169;
+}
+
+/* Custom prompt */
+.custom-prompt textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: white;
   resize: vertical;
 }
 
@@ -256,6 +383,7 @@ textarea {
 .action-button.success {
   background-color: var(--success-color);
   transform: scale(1.05);
+  animation: pulse 0.5s ease-in-out;
 }
 
 .post-content {
@@ -299,6 +427,7 @@ textarea {
   border-radius: 4px;
   margin-top: 0.25rem;
   z-index: 10;
+  overflow: hidden;
 }
 
 .dropdown-item {
@@ -310,7 +439,16 @@ textarea {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #121212;
+  color: white;
+  font-size: 1.25rem;
+}
 
 /* Footer Styles */
 .footer {
@@ -396,8 +534,14 @@ textarea {
   font-size: 0.8rem;
 }
 
+/* Animation for buttons */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
 
-/* Mobile responsiveness */
+/* Responsive styles */
 @media (max-width: 768px) {
   .header h1 {
     font-size: 1.2rem;
@@ -411,6 +555,10 @@ textarea {
     flex-direction: column;
   }
 
+  .desktop-sidebar {
+    display: none;
+  }
+  
   .sidebar {
     position: fixed;
     left: 0;
@@ -429,23 +577,9 @@ textarea {
     opacity: 1;
     pointer-events: all;
   }
-
-  .sidebar-backdrop {
-    display: none;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 80;
-  }
   
-  .sidebar-backdrop.open {
-    display: block;
-  }
-
   .main-content {
+    margin-left: 0 !important;
     padding: 1rem;
   }
   
@@ -467,17 +601,281 @@ textarea {
     margin-bottom: 1.5rem;
     padding-right: 0;
   }
-
 }
 
-/* Animation for buttons */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+
+/* Add these to your existing CSS */
+
+/* Error Message */
+.error-message {
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: #ff6b6b;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
 }
 
-.action-button.success {
-  animation: pulse 0.5s ease-in-out;
+/* Bookmark styling */
+.bookmark-preview {
+  color: var(--muted-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
+.bookmark-preview:hover {
+  color: var(--text-color);
+}
+
+/* Bookmark Details */
+.bookmark-details {
+  animation: fadeIn 0.3s ease;
+}
+
+.bookmark-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.close-button {
+  background-color: transparent;
+  color: var(--muted-text);
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.bookmark-info-group {
+  margin-bottom: 1rem;
+}
+
+.bookmark-info-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted-text);
+  margin-bottom: 0.25rem;
+}
+
+.bookmark-prompt, .bookmark-tweet {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.bookmark-tweet {
+  font-weight: 500;
+}
+
+.bookmark-details-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.delete-bookmark-button {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-bookmark-button:hover {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
+/* Improved Bookmark Modal Styles */
+.bookmark-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.bookmark-modal {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  width: 90%;
+  max-width: 550px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  animation: modalFadeIn 0.3s ease-out;
+  color: var(--text-color);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bookmark-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bookmark-details-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: var(--muted-text);
+  font-size: 24px;
+  cursor: pointer;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+}
+
+.bookmark-details-content {
+  padding: 24px;
+}
+
+.bookmark-info-group {
+  margin-bottom: 20px;
+}
+
+.bookmark-info-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--muted-text);
+  font-size: 0.9rem;
+}
+
+.bookmark-prompt, .bookmark-tweet {
+  background-color: var(--input-bg);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-top: 4px;
+  word-break: break-word;
+  color: var(--text-color);
+}
+
+.bookmark-tweet {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.bookmark-details-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  justify-content: flex-end;
+}
+
+.copy-bookmark-button, .delete-bookmark-button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.copy-bookmark-button {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.copy-bookmark-button:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.delete-bookmark-button {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.delete-bookmark-button:hover {
+  background-color: #e74c3c;
+  color: white;
+  border-color: #e74c3c;
+  transform: translateY(-1px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .bookmark-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .bookmark-details-header {
+    padding: 16px 20px;
+  }
+  
+  .bookmark-details-content {
+    padding: 16px;
+  }
+  
+  .bookmark-details-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+  
+  .copy-bookmark-button, .delete-bookmark-button {
+    width: 100%;
+    padding: 12px;
+    text-align: center;
+  }
+}

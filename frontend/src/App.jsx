@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserButton, useUser } from '@clerk/clerk-react';
-import Footer from './components/Footer'; // Import the Footer component
+import axios from 'axios'; // Import axios for API requests
+import Footer from './components/Footer';
+import Sidebar from './components/Sidebar';
 import './App.css';
 
 function App() {
   const { user, isLoaded, isSignedIn } = useUser();
+  
   const [topic, setTopic] = useState('');
   const [tone, setTone] = useState('Casual');
   const [audience, setAudience] = useState('General');
   const [customPrompt, setCustomPrompt] = useState('');
-  const [generatedPost, setGeneratedPost] = useState('This is a dummy AI generated post. It would show the response from an AI model based on your inputs and custom prompt.');
+  const [generatedPost, setGeneratedPost] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [copyStatus, setCopyStatus] = useState('Copy');
   const [bookmarkStatus, setBookmarkStatus] = useState('Bookmark');
   const [bookmarks, setBookmarks] = useState([
     { id: 1, content: 'This is a sample bookmark post about AI technology.', title: 'Post #1' }
   ]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const toneOptions = ['Casual', 'Professional', 'Humorous', 'Serious'];
   const audienceOptions = ['General', 'Professionals', 'Tech enthusiasts', 'Students'];
@@ -23,9 +28,63 @@ function App() {
   const [toneDropdownOpen, setToneDropdownOpen] = useState(false);
   const [audienceDropdownOpen, setAudienceDropdownOpen] = useState(false);
   
-  const handleGeneratePost = () => {
-    console.log('Generating post with:', { topic, tone, audience, customPrompt });
-    // In a real app, we would call an API here
+  // Handle authentication and API request when user signs in
+  useEffect(() => {
+    if (isLoaded && isSignedIn && user) {
+      // User is authenticated, make API request to your backend
+      const registerUser = async () => {
+        try {
+          // Make API request to your backend with just the clerkId
+          const response = await axios.post('http://localhost:5000/api/users/', {
+            clerkId: user.id
+          });
+          
+          console.log('User registered/logged in successfully:', response.data);
+          // You can store user data in state or localStorage if needed
+        } catch (error) {
+          console.error('Error registering/logging in user:', error);
+        }
+      };
+      
+      registerUser();
+    } else if (isLoaded && !isSignedIn) {
+      // Redirect to Clerk's sign-in if not signed in
+      window.location.href = '/sign-in';
+    }
+  }, [isLoaded, isSignedIn, user]);
+
+  const handleGeneratePost = async () => {
+    // Validate inputs
+    if (!topic.trim()) {
+      alert('Please enter a topic');
+      return;
+    }
+    
+    try {
+      setIsGenerating(true);
+      
+      // Call your backend API to generate the post
+      const response = await axios.post('http://localhost:5000/api/posts/', {
+        clerkId: user.id,
+        topic,
+        tone,
+        targetAudience: audience,
+        prompt: customPrompt
+      });
+      
+      // Set the generated tweet from the API response
+      setGeneratedPost(response.data.generatedTweet);
+    } catch (error) {
+      console.error('Error generating post:', error.response?.data || error.message);
+      
+      if (error.response?.data?.message === 'Groq API key not found for this user.') {
+        alert('Please enter your Groq API Key in the sidebar first');
+      } else {
+        alert('Error generating post. Please try again.');
+      }
+    } finally {
+      setIsGenerating(false);
+    }
   };
   
   const handleCopy = () => {
@@ -34,23 +93,78 @@ function App() {
     setTimeout(() => setCopyStatus('Copy'), 2000);
   };
   
-  const handleBookmark = () => {
-    const newBookmark = {
-      id: bookmarks.length + 1,
-      content: generatedPost,
-      title: `Post #${bookmarks.length + 1}`
-    };
-    setBookmarks([...bookmarks, newBookmark]);
-    setBookmarkStatus('Bookmarked!');
-    setTimeout(() => setBookmarkStatus('Bookmark'), 2000);
+  const handleBookmark = async () => {
+    try {
+      // Call your backend API to bookmark the post
+      const response = await axios.post('http://localhost:5000/api/posts/bookmark', {
+        clerkId: user.id,
+        topic,
+        tone,
+        targetAudience: audience,
+        prompt: customPrompt,
+        generatedTweet: generatedPost
+      });
+      
+      // Add the new bookmark to the bookmarks state
+      const newBookmark = {
+        id: response.data.bookmarkedPost._id,
+        content: generatedPost,
+        title: `Post about ${topic}`
+      };
+      
+      setBookmarks([...bookmarks, newBookmark]);
+      setBookmarkStatus('Bookmarked!');
+      setTimeout(() => setBookmarkStatus('Bookmark'), 2000);
+      
+    } catch (error) {
+      console.error('Error bookmarking post:', error);
+      alert('Error bookmarking post. Please try again.');
+    }
   };
   
-  const handleDeleteBookmark = (id) => {
-    setBookmarks(bookmarks.filter(bookmark => bookmark.id !== id));
+  const handleDeleteBookmark = async (id) => {
+    try {
+      // Call your backend API to delete the bookmark
+      await axios.delete(`http://localhost:5000/api/posts/${id}`);
+      
+      // Remove the bookmark from the bookmarks state
+      setBookmarks(bookmarks.filter(bookmark => bookmark.id !== id));
+    } catch (error) {
+      console.error('Error deleting bookmark:', error);
+      alert('Error deleting bookmark. Please try again.');
+    }
   };
+
+  // Fetch user's bookmarks when component mounts
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      if (isSignedIn && user) {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/posts/user/${user.id}`);
+          
+          // Map the response data to match the bookmarks state structure
+          const formattedBookmarks = response.data.map(post => ({
+            id: post._id,
+            content: post.generatedTweet,
+            title: `Post about ${post.topic}`
+          }));
+          
+          setBookmarks(formattedBookmarks);
+        } catch (error) {
+          console.error('Error fetching bookmarks:', error);
+        }
+      }
+    };
+    
+    fetchBookmarks();
+  }, [isSignedIn, user]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   const closeSidebar = () => {
@@ -90,13 +204,18 @@ function App() {
 
   // Show loading indicator while Clerk is initializing
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return <div className="loading">Loading...</div>;
+  }
+
+  // If not signed in, we'll redirect in the useEffect - show loading in the meantime
+  if (!isSignedIn) {
+    return <div className="loading">Redirecting to sign in...</div>;
   }
 
   return (
     <div className="app">
       <header className="header">
-        {/* Hamburger menu */}
+        {/* Hamburger menu for mobile */}
         <div className="hamburger" onClick={toggleSidebar}>
           <span></span>
           <span></span>
@@ -106,8 +225,8 @@ function App() {
         <h1>AI Twitter Post Generator</h1>
         
         <div className="user-section">
-          {isSignedIn && user && <span className="user-name">{user.fullName || user.username}</span>}
-          <UserButton />
+          {user && <span className="user-name">{user.fullName || user.username}</span>}
+          <UserButton afterSignOutUrl="/sign-in" />
         </div>
       </header>
       
@@ -118,32 +237,23 @@ function App() {
           onClick={closeSidebar}
         ></div>
         
-        {/* Sidebar */}
-        <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-          <h2>Bookmarks</h2>
-          {bookmarks.length > 0 ? (
-            <div className="bookmarks-list">
-              {bookmarks.map(bookmark => (
-                <div key={bookmark.id} className="bookmark-item">
-                  <div className="bookmark-header">
-                    <h3>{bookmark.title}</h3>
-                    <button 
-                      className="delete-button"
-                      onClick={() => handleDeleteBookmark(bookmark.id)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                  <p>{bookmark.content}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="no-bookmarks">No bookmarks yet</p>
-          )}
+        {/* Desktop sidebar with collapsible functionality */}
+        <div className="desktop-sidebar">
+          <Sidebar 
+            isCollapsed={sidebarCollapsed}
+            toggleCollapse={toggleSidebarCollapse}
+          />
         </div>
         
-        <main className="main-content">
+        {/* Mobile sidebar */}
+        <div className={`mobile-sidebar ${sidebarOpen ? 'open' : ''}`}>
+          <Sidebar 
+            isCollapsed={false}
+            toggleCollapse={() => {}}
+          />
+        </div>
+        
+        <main className={`main-content ${sidebarCollapsed ? 'expanded' : ''}`}>
           <section className="card categories">
             <h2>Categories</h2>
             
@@ -188,8 +298,12 @@ function App() {
               placeholder="Enter your custom prompt here..."
             />
             <div className="button-container">
-              <button className="generate-button" onClick={handleGeneratePost}>
-                Generate Post
+              <button 
+                className={`generate-button ${isGenerating ? 'disabled' : ''}`} 
+                onClick={handleGeneratePost}
+                disabled={isGenerating}
+              >
+                {isGenerating ? 'Generating...' : 'Generate Post'}
               </button>
             </div>
           </section>
@@ -201,12 +315,14 @@ function App() {
                 <button 
                   className={`action-button ${copyStatus === 'Copied!' ? 'success' : ''}`}
                   onClick={handleCopy}
+                  disabled={!generatedPost}
                 >
                   {copyStatus}
                 </button>
                 <button 
                   className={`action-button ${bookmarkStatus === 'Bookmarked!' ? 'success' : ''}`}
                   onClick={handleBookmark}
+                  disabled={!generatedPost}
                 >
                   {bookmarkStatus}
                 </button>
@@ -214,13 +330,18 @@ function App() {
             </div>
             
             <div className="post-content">
-              <p>{generatedPost}</p>
+              {isGenerating ? (
+                <p className="loading-text">Generating your post...</p>
+              ) : generatedPost ? (
+                <p>{generatedPost}</p>
+              ) : (
+                <p className="placeholder-text">Your generated post will appear here.</p>
+              )}
             </div>
           </section>
         </main>
       </div>
       
-      {/* Footer Component */}
       <Footer />
     </div>
   );
