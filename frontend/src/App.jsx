@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserButton, useUser } from '@clerk/clerk-react';
-import axios from 'axios'; // Import axios for API requests
+import axios from 'axios';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
 import './App.css';
@@ -16,17 +16,12 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copyStatus, setCopyStatus] = useState('Copy');
   const [bookmarkStatus, setBookmarkStatus] = useState('Bookmark');
-  const [bookmarks, setBookmarks] = useState([
-    { id: 1, content: 'This is a sample bookmark post about AI technology.', title: 'Post #1' }
-  ]);
+  const [bookmarks, setBookmarks] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const toneOptions = ['Casual', 'Professional', 'Humorous', 'Serious'];
   const audienceOptions = ['General', 'Professionals', 'Tech enthusiasts', 'Students'];
-  
-  const [toneDropdownOpen, setToneDropdownOpen] = useState(false);
-  const [audienceDropdownOpen, setAudienceDropdownOpen] = useState(false);
   
   // Handle authentication and API request when user signs in
   useEffect(() => {
@@ -40,18 +35,35 @@ function App() {
           });
           
           console.log('User registered/logged in successfully:', response.data);
-          // You can store user data in state or localStorage if needed
         } catch (error) {
           console.error('Error registering/logging in user:', error);
         }
       };
       
       registerUser();
-    } else if (isLoaded && !isSignedIn) {
-      // Redirect to Clerk's sign-in if not signed in
-      window.location.href = '/sign-in';
+      fetchBookmarks();
     }
   }, [isLoaded, isSignedIn, user]);
+
+  // Separate function to fetch bookmarks
+  const fetchBookmarks = async () => {
+    if (isSignedIn && user) {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/posts/user/${user.id}`);
+        
+        // Map the response data to match the bookmarks state structure
+        const formattedBookmarks = response.data.map(post => ({
+          id: post._id,
+          content: post.generatedTweet,
+          title: `Post about ${post.topic}`
+        }));
+        
+        setBookmarks(formattedBookmarks);
+      } catch (error) {
+        console.error('Error fetching bookmarks:', error);
+      }
+    }
+  };
 
   const handleGeneratePost = async () => {
     // Validate inputs
@@ -65,7 +77,7 @@ function App() {
       
       // Call your backend API to generate the post
       const response = await axios.post('http://localhost:5000/api/posts/', {
-        clerkId: user.id,
+        clerkId: user?.id,
         topic,
         tone,
         targetAudience: audience,
@@ -94,6 +106,11 @@ function App() {
   };
   
   const handleBookmark = async () => {
+    if (!isSignedIn) {
+      alert('Please sign in to bookmark posts');
+      return;
+    }
+    
     try {
       // Call your backend API to bookmark the post
       const response = await axios.post('http://localhost:5000/api/posts/bookmark', {
@@ -116,6 +133,9 @@ function App() {
       setBookmarkStatus('Bookmarked!');
       setTimeout(() => setBookmarkStatus('Bookmark'), 2000);
       
+      // Refresh bookmarks
+      fetchBookmarks();
+      
     } catch (error) {
       console.error('Error bookmarking post:', error);
       alert('Error bookmarking post. Please try again.');
@@ -129,35 +149,14 @@ function App() {
       
       // Remove the bookmark from the bookmarks state
       setBookmarks(bookmarks.filter(bookmark => bookmark.id !== id));
+      
+      // Refresh bookmarks
+      fetchBookmarks();
     } catch (error) {
       console.error('Error deleting bookmark:', error);
       alert('Error deleting bookmark. Please try again.');
     }
   };
-
-  // Fetch user's bookmarks when component mounts
-  useEffect(() => {
-    const fetchBookmarks = async () => {
-      if (isSignedIn && user) {
-        try {
-          const response = await axios.get(`http://localhost:5000/api/posts/user/${user.id}`);
-          
-          // Map the response data to match the bookmarks state structure
-          const formattedBookmarks = response.data.map(post => ({
-            id: post._id,
-            content: post.generatedTweet,
-            title: `Post about ${post.topic}`
-          }));
-          
-          setBookmarks(formattedBookmarks);
-        } catch (error) {
-          console.error('Error fetching bookmarks:', error);
-        }
-      }
-    };
-    
-    fetchBookmarks();
-  }, [isSignedIn, user]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -171,10 +170,26 @@ function App() {
     setSidebarOpen(false);
   };
 
-  // Simplified dropdown component
-  const Dropdown = ({ value, options, open, setOpen, onChange }) => {
+  // Dropdown component using the improved version from separate file
+  const Dropdown = ({ value, options, onChange }) => {
+    const [open, setOpen] = useState(false);
+    const dropdownRef = React.useRef(null);
+    
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setOpen(false);
+        }
+      };
+      
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
+    
     return (
-      <div className="dropdown">
+      <div className="dropdown" ref={dropdownRef}>
         <button 
           className="dropdown-button"
           onClick={() => setOpen(!open)}
@@ -205,11 +220,6 @@ function App() {
   // Show loading indicator while Clerk is initializing
   if (!isLoaded) {
     return <div className="loading">Loading...</div>;
-  }
-
-  // If not signed in, we'll redirect in the useEffect - show loading in the meantime
-  if (!isSignedIn) {
-    return <div className="loading">Redirecting to sign in...</div>;
   }
 
   return (
@@ -272,8 +282,6 @@ function App() {
               <Dropdown 
                 value={tone}
                 options={toneOptions}
-                open={toneDropdownOpen}
-                setOpen={setToneDropdownOpen}
                 onChange={setTone}
               />
             </div>
@@ -283,8 +291,6 @@ function App() {
               <Dropdown 
                 value={audience}
                 options={audienceOptions}
-                open={audienceDropdownOpen}
-                setOpen={setAudienceDropdownOpen}
                 onChange={setAudience}
               />
             </div>

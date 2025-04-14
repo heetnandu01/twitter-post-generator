@@ -1,4 +1,3 @@
-/* Combined CSS file */
 :root {
   --bg-color: #000000;
   --card-bg: #1a1a1a;
@@ -88,21 +87,53 @@ body {
   font-size: 0.9rem;
 }
 
-/* Improved sidebar styling */
-.sidebar {
+/* Desktop sidebar */
+.desktop-sidebar {
+  display: block;
+}
+
+.desktop-sidebar .sidebar {
   width: 300px;
-  padding: 1.5rem;
+  background-color: var(--bg-color);
   border-right: 1px solid var(--border-color);
   height: calc(100vh - 60px);
   position: sticky;
   top: 60px;
   overflow-y: auto;
-  transition: width 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
-  background-color: var(--bg-color);
+  transition: width 0.3s ease, transform 0.3s ease;
+  z-index: 40;
 }
 
-.sidebar.collapsed {
-  width: 30px;
+.desktop-sidebar .sidebar.collapsed {
+  width: 50px;
+  overflow: hidden;
+}
+
+/* Mobile sidebar */
+.mobile-sidebar {
+  display: none;
+  position: fixed;
+  left: -100%;
+  top: 0;
+  width: 80%;
+  max-width: 300px;
+  height: 100vh;
+  z-index: 100;
+  transition: left 0.3s ease;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-sidebar .sidebar {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+  overflow-y: auto;
+  padding-top: 60px;
+}
+
+.mobile-sidebar.open {
+  left: 0;
+  display: block;
 }
 
 .sidebar-toggle {
@@ -123,7 +154,8 @@ body {
 
 .sidebar-content {
   padding: 1rem;
-  width: 250px;
+  width: 100%;
+  max-width: 250px;
 }
 
 .sidebar h2 {
@@ -192,44 +224,6 @@ body {
   margin-top: 1.5rem;
 }
 
-/* Desktop sidebar */
-.desktop-sidebar {
-  display: block;
-}
-
-/* Mobile sidebar */
-.mobile-sidebar {
-  position: fixed;
-  top: 0;
-  left: -280px;
-  width: 280px;
-  height: 100%;
-  background-color: #1a1a1a;
-  z-index: 1000;
-  transition: left 0.3s ease;
-  overflow-y: auto;
-  padding-top: 1rem;
-}
-
-.mobile-sidebar.open {
-  left: 0;
-}
-
-.sidebar-backdrop {
-  position: fixed;
-  top: 60px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 80;
-  display: none;
-}
-
-.sidebar-backdrop.open {
-  display: block;
-}
-
 /* Main content */
 .main-content {
   flex: 1;
@@ -238,8 +232,6 @@ body {
   margin: 0 auto;
   width: 100%;
   transition: margin-left 0.3s ease;
-  justify-content:center;
-  align-items:center;
 }
 
 .main-content.expanded {
@@ -306,6 +298,10 @@ textarea {
   background-color: #38a169;
 }
 
+.save-button.error {
+  background-color: #e53e3e;
+}
+
 /* Custom prompt */
 .custom-prompt textarea {
   width: 100%;
@@ -346,7 +342,7 @@ textarea {
   transform: scale(0.98);
 }
 
-/* Improved post header styling */
+/* Post header styling */
 .post-header {
   display: flex;
   justify-content: space-between;
@@ -359,7 +355,7 @@ textarea {
   gap: 0.75rem;
 }
 
-/* Improved action buttons */
+/* Action buttons */
 .action-button {
   background-color: var(--input-bg);
   color: var(--text-color);
@@ -541,71 +537,6 @@ textarea {
   100% { transform: scale(1); }
 }
 
-/* Responsive styles */
-@media (max-width: 768px) {
-  .header h1 {
-    font-size: 1.2rem;
-  }
-  
-  .hamburger {
-    display: flex;
-  }
-  
-  .container {
-    flex-direction: column;
-  }
-
-  .desktop-sidebar {
-    display: none;
-  }
-  
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 60px;
-    width: 80%;
-    max-width: 300px;
-    z-index: 90;
-    transform: translateX(-100%);
-    opacity: 0;
-    pointer-events: none;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
-    opacity: 1;
-    pointer-events: all;
-  }
-  
-  .main-content {
-    margin-left: 0 !important;
-    padding: 1rem;
-  }
-  
-  .post-actions {
-    gap: 0.5rem;
-  }
-  
-  .action-button {
-    min-width: 70px;
-    font-size: 0.8rem;
-  }
-
-  .footer-content {
-    flex-direction: column;
-    padding: 1.5rem 1rem;
-  }
-  
-  .footer-section {
-    margin-bottom: 1.5rem;
-    padding-right: 0;
-  }
-}
-
-
-/* Add these to your existing CSS */
-
 /* Error Message */
 .error-message {
   background-color: rgba(255, 0, 0, 0.1);
@@ -614,18 +545,6 @@ textarea {
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
-}
-
-/* Bookmark styling */
-.bookmark-preview {
-  color: var(--muted-text);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.bookmark-preview:hover {
-  color: var(--text-color);
 }
 
 /* Bookmark Details */
@@ -702,11 +621,26 @@ textarea {
   background-color: rgba(255, 0, 0, 0.3);
 }
 
+/* Overlay for mobile sidebar backdrop */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+  display: none;
+}
+
+.sidebar-backdrop.open {
+  display: block;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 
 /* Improved Bookmark Modal Styles */
 .bookmark-modal-overlay {
@@ -727,13 +661,14 @@ textarea {
   background-color: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  width: 90%;
+  width: 100%;
   max-width: 550px;
   max-height: 85vh;
   overflow-y: auto;
   border: 1px solid var(--border-color);
   animation: modalFadeIn 0.3s ease-out;
   color: var(--text-color);
+  margin-top: 50px;
 }
 
 @keyframes modalFadeIn {
@@ -747,114 +682,78 @@ textarea {
   }
 }
 
-.bookmark-details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--border-color);
+/* Z-index hierarchy */
+.sidebar-backdrop {
+  z-index: 90;
 }
 
-.bookmark-details-header h2 {
-  margin: 0;
-  font-size: 1.4rem;
-  color: var(--text-color);
-  font-weight: 600;
+.sidebar {
+  z-index: 40;
 }
 
-.close-button {
-  background: none;
-  border: none;
-  color: var(--muted-text);
-  font-size: 24px;
-  cursor: pointer;
-  height: 36px;
-  width: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
+.bookmark-modal-overlay {
+  z-index: 1000;
 }
 
-.close-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-color);
+.dropdown-menu {
+  z-index: 20;
 }
 
-.bookmark-details-content {
-  padding: 24px;
-}
-
-.bookmark-info-group {
-  margin-bottom: 20px;
-}
-
-.bookmark-info-group label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--muted-text);
-  font-size: 0.9rem;
-}
-
-.bookmark-prompt, .bookmark-tweet {
-  background-color: var(--input-bg);
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  margin-top: 4px;
-  word-break: break-word;
-  color: var(--text-color);
-}
-
-.bookmark-tweet {
-  font-size: 1.1rem;
-  line-height: 1.5;
-}
-
-.bookmark-details-footer {
-  display: flex;
-  gap: 12px;
-  margin-top: 28px;
-  justify-content: flex-end;
-}
-
-.copy-bookmark-button, .delete-bookmark-button {
-  padding: 10px 18px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-  font-size: 0.95rem;
-}
-
-.copy-bookmark-button {
-  background-color: var(--accent-color);
-  color: white;
-}
-
-.copy-bookmark-button:hover {
-  background-color: var(--accent-hover);
-  transform: translateY(-1px);
-}
-
-.delete-bookmark-button {
-  background-color: rgba(231, 76, 60, 0.2);
-  color: #ff6b6b;
-  border: 1px solid rgba(231, 76, 60, 0.3);
-}
-
-.delete-bookmark-button:hover {
-  background-color: #e74c3c;
-  color: white;
-  border-color: #e74c3c;
-  transform: translateY(-1px);
-}
-
-/* Mobile responsiveness */
+/* RESPONSIVE STYLES - FIXED for mobile */
 @media (max-width: 768px) {
+  .header h1 {
+    font-size: 1.2rem;
+  }
+  
+  .hamburger {
+    display: flex;
+  }
+  
+  .container {
+    flex-direction: column;
+  }
+  
+  /* Hide desktop sidebar on mobile */
+  .desktop-sidebar {
+    display: none;
+  }
+  
+  /* Show mobile sidebar */
+  .mobile-sidebar {
+    display: block;
+  }
+  
+  .mobile-sidebar .sidebar {
+    width: 80%;
+    max-width: 300px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    padding: 1rem;
+  }
+  
+  .post-actions {
+    gap: 0.5rem;
+  }
+  
+  .action-button {
+    min-width: 70px;
+    font-size: 0.8rem;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+  }
+  
+  .footer-section {
+    margin-bottom: 1.5rem;
+    padding-right: 0;
+  }
+  
   .bookmark-modal {
     width: 95%;
     max-height: 90vh;
@@ -877,5 +776,18 @@ textarea {
     width: 100%;
     padding: 12px;
     text-align: center;
+  }
+  
+  /* Make sure the sidebar content is visible on mobile */
+  .sidebar-content {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    max-width: 100%;
+  }
+  
+  /* Hide the sidebar toggle on mobile */
+  .sidebar-toggle {
+    display: none;
   }
 }

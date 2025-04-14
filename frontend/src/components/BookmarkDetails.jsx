@@ -1,4 +1,3 @@
-// Updated BookmarkDetails.jsx
 import React, { useState } from 'react';
 
 function BookmarkDetails({ bookmark, onClose, onDelete }) {
@@ -11,7 +10,7 @@ function BookmarkDetails({ bookmark, onClose, onDelete }) {
   };
 
   return (
-    <div className="bookmark-modal-overlay" onClick={onClose}>
+    <div className="bookmark-modal-overlay" onClick={onClose} style={{ zIndex: 50 }}>
       <div className="bookmark-modal" onClick={(e) => e.stopPropagation()}>
         <div className="bookmark-details-header">
           <h2>{bookmark.topic || 'Untitled Post'}</h2>

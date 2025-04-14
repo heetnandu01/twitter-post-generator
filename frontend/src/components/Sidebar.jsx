@@ -1,4 +1,3 @@
-// Updated Sidebar.jsx with fixed URL syntax and proper bookmark handling
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import axios from 'axios';
